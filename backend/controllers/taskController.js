@@ -271,22 +271,28 @@ const getRecentTasks = async (req, res) => {
   }
 };
 const getUserTasks = async (req, res) => {
-  const { id } = req.params; // Get userId from request parameters
- 
+  const { id } = req.params; // requested user id
+  const requester = req.user; // set by verifyToken
 
   try {
+    if (!requester) return res.status(401).json({ msg: 'Unauthorized' });
+
+    // allow admin to fetch any user's tasks
+    if (requester.role !== 'admin' && requester.id !== id) {
+      return res.status(403).json({ msg: 'Forbidden' });
+    }
+
     const tasks = await Task.find({ assignee: id })
-      .populate('assignee', 'name email') // Populate user data
-      .sort({ createdAt: -1 }); // Sort by creation date
-    
-   
+      .populate('assignee', 'name email')
+      .sort({ createdAt: -1 });
+
     return res.status(200).json(tasks);
-    
   } catch (error) {
     console.error("❌ Task Fetch Error:", error);
-    res.status(500).json({ msg: "Internal Server Error" });
+    res.status(500).json({ msg: "Internal Server Error", error: error.message });
   }
 };
+
 // controllers/taskController.js
 const getTaskById = async (req, res) => {
   try {
