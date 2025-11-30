@@ -2,7 +2,6 @@ import axios from "axios";
 
 // Base URL for Task Management API
 const TASK_API_URL = "http://localhost:5000/tasks";
-// const TASK_API_URL = "https://task-management-system-backend-ksft.onrender.com/tasks";
 
 // Axios instance
 const API = axios.create({

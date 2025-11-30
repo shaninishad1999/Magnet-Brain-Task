@@ -1,7 +1,6 @@
 import axios from "axios";
 
 const CREATED_ADMIN_API = "http://localhost:5000/admin";
-// const CREATED_ADMIN_API = "https://task-management-system-backend-ksft.onrender.com/admin";
 
 // helper to get token
 const getAuthHeader = () => {

@@ -1,7 +1,6 @@
 import axios from "axios";
 
 const baseURL = "http://localhost:5000/user"; // Fixed API base URL
-// const baseURL = "https://task-management-system-backend-ksft.onrender.com/user"; // Fixed API base URL
 
 export const userLogin = async (identifier, password) => {
   try {
