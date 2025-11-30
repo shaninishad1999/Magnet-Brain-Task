@@ -7,16 +7,17 @@ export const adminLogin = async (email, password) => {
     try {
         const response = await axios.post(
             `${baseURL}/login`,
-            { email, password },
-            // { withCredentials: true } // Includes cookies for authentication
-          
-        );  
+            { email, password }
+        );
+
+        // Save token (if backend returns one)
+        if (response.data?.token) {
+            localStorage.setItem("token", response.data.token);
+        }
 
         return response.data; // Return the response data
     } catch (error) {
         console.error("Error logging in:", error);
-
-        // Extracts error message from backend response
-        throw new Error(error.response?.data?.msg || "Authentication failed");
+        throw new Error(error.response?.data?.msg || error.response?.data?.message || "Authentication failed");
     }
 };

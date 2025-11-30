@@ -3,7 +3,6 @@ import axios from "axios";
 const baseURL = "http://localhost:5000/user"; // Fixed API base URL
 // const baseURL = "https://task-management-system-backend-ksft.onrender.com/user"; // Fixed API base URL
 
-
 export const userLogin = async (identifier, password) => {
   try {
     const payload = identifier.includes("@")
@@ -12,16 +11,14 @@ export const userLogin = async (identifier, password) => {
 
     const response = await axios.post(`${baseURL}/login`, payload);
 
-    // ⭐TOKEN SAVE
+    // ⭐ Save token (if backend returns token)
     if (response.data?.token) {
-      localStorage.setItem("userToken", response.data.token);
+      localStorage.setItem("token", response.data.token);
     }
 
     return response.data;
   } catch (error) {
     console.error("Error logging in:", error);
-    throw new Error(error.response?.data?.msg || "Authentication failed");
+    throw new Error(error.response?.data?.msg || error.response?.data?.message || "Authentication failed");
   }
 };
-
-  

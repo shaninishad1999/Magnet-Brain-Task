@@ -8,6 +8,32 @@ const ViewAssignedTasksModal = ({ show, handleClose, user }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // === Semantic color mappings (same as ViewAssignedTasksModal / TasksTab) ===
+  const getStatusColor = (status) => {
+    const s = (status ?? "").toString();
+    switch (s) {
+      case "Completed":
+        return "bg-green-100 border-green-200 text-green-800";
+      case "In Progress":
+        return "bg-blue-100 border-blue-200 text-blue-800";
+      default:
+        // Pending / others
+        return "bg-yellow-100 border-yellow-200 text-yellow-800";
+    }
+  };
+
+  const getPriorityColor = (priority) => {
+    const p = (priority ?? "").toString();
+    switch (p) {
+      case "High":
+        return "bg-red-100 border-red-200 text-red-700";
+      case "Medium":
+        return "bg-orange-100 border-orange-200 text-orange-700";
+      default:
+        return "bg-slate-100 border-slate-200 text-slate-700";
+    }
+  };
+
   useEffect(() => {
     if (show && user) {
       fetchUserTasks();
@@ -50,40 +76,21 @@ const ViewAssignedTasksModal = ({ show, handleClose, user }) => {
     });
   };
 
-  // Render pill with background color for priority (High/Medium/Default)
+  // Render pill with Tailwind-style classes for priority (High/Medium/Default)
   const PriorityPill = ({ priority }) => {
     const text = priority || "Normal";
-    // Semantic mapping to match TaskDetails/TasksTab:
-    // High -> red, Medium -> yellow, Default -> neutral (grey)
-    const className =
-      priority === "High"
-        ? "px-2 py-1 rounded-pill text-white bg-danger"
-        : priority === "Medium"
-        ? "px-2 py-1 rounded-pill text-dark bg-warning"
-        : "px-2 py-1 rounded-pill text-white bg-secondary";
-    return (
-      <span className={className} style={{ fontSize: "0.75rem" }}>
-        {text}
-      </span>
-    );
+    const tailwindClasses = getPriorityColor(priority);
+    // Add spacing + border-radius to make it pill-like
+    const className = `${tailwindClasses} border px-2 py-1 rounded-full text-xs font-medium inline-flex items-center`;
+    return <span className={className}>{text}</span>;
   };
 
-  // Render pill with background color for status (Completed/In Progress/Pending)
+  // Render pill with Tailwind-style classes for status (Completed/In Progress/Pending)
   const StatusPill = ({ status }) => {
     const text = status || "Pending";
-    // Semantic mapping to match TaskDetails/TasksTab:
-    // Completed -> green, In Progress -> blue, Pending/other -> yellow
-    const className =
-      status === "Completed"
-        ? "px-2 py-1 rounded-pill text-white bg-success"
-        : status === "In Progress"
-        ? "px-2 py-1 rounded-pill text-white bg-primary"
-        : "px-2 py-1 rounded-pill text-dark bg-warning";
-    return (
-      <span className={className} style={{ fontSize: "0.75rem" }}>
-        {text}
-      </span>
-    );
+    const tailwindClasses = getStatusColor(status);
+    const className = `${tailwindClasses} border px-2 py-1 rounded-full text-xs font-medium inline-flex items-center`;
+    return <span className={className}>{text}</span>;
   };
 
   return (
@@ -108,35 +115,38 @@ const ViewAssignedTasksModal = ({ show, handleClose, user }) => {
           </div>
         ) : (
           <ListGroup variant="flush">
-            {tasks.map((task) => (
-              <ListGroup.Item key={task._id} className="border-bottom py-3">
-                <div className="d-flex justify-content-between align-items-start">
-                  <div style={{ maxWidth: "70%" }}>
-                    <h6 className="mb-1">{task.title}</h6>
-                    <p className="mb-1 text-muted small" style={{ whiteSpace: "pre-wrap" }}>
-                      {task.description || ""}
-                    </p>
+            {tasks.map((task) => {
+              const id = task._id ?? task.id;
+              return (
+                <ListGroup.Item key={id} className="border-bottom py-3">
+                  <div className="d-flex justify-content-between align-items-start">
+                    <div style={{ maxWidth: "70%" }}>
+                      <h6 className="mb-1">{task.title}</h6>
+                      <p className="mb-1 text-muted small" style={{ whiteSpace: "pre-wrap" }}>
+                        {task.description || ""}
+                      </p>
 
-                    <div className="d-flex mt-2 gap-3 align-items-center">
-                      <small className="text-muted d-flex align-items-center" style={{ gap: 8 }}>
-                        <strong>Priority:</strong>
-                        <PriorityPill priority={task.priority} />
-                      </small>
+                      <div className="d-flex mt-2 gap-3 align-items-center">
+                        <small className="text-muted d-flex align-items-center" style={{ gap: 8 }}>
+                          <strong>Priority:</strong>
+                          <PriorityPill priority={task.priority} />
+                        </small>
 
-                      <small className="text-muted d-flex align-items-center" style={{ gap: 8 }}>
-                        <strong>Status:</strong>
-                        <StatusPill status={task.status} />
-                      </small>
+                        <small className="text-muted d-flex align-items-center" style={{ gap: 8 }}>
+                          <strong>Status:</strong>
+                          <StatusPill status={task.status} />
+                        </small>
+                      </div>
+                    </div>
+
+                    <div className="text-end" style={{ minWidth: 140 }}>
+                      <small className="text-muted d-block">Due: {formatDate(task.dueDate)}</small>
+                      <small className="text-muted d-block">Created: {formatDate(task.createdAt)}</small>
                     </div>
                   </div>
-
-                  <div className="text-end" style={{ minWidth: 140 }}>
-                    <small className="text-muted d-block">Due: {formatDate(task.dueDate)}</small>
-                    <small className="text-muted d-block">Created: {formatDate(task.createdAt)}</small>
-                  </div>
-                </div>
-              </ListGroup.Item>
-            ))}
+                </ListGroup.Item>
+              );
+            })}
           </ListGroup>
         )}
       </Modal.Body>

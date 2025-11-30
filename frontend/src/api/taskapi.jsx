@@ -19,11 +19,11 @@ API.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
-});
+}, (error) => Promise.reject(error));
 
 // Handle API errors centrally
 const handleApiError = (error) => {
-  return error.response?.data?.message || "An error occurred!";
+  return error.response?.data?.message || error.response?.data?.msg || error.message || "An error occurred!";
 };
 
 // 🔹 **CREATE TASK**
@@ -37,24 +37,26 @@ export const createTask = async (taskData) => {
 };
 
 // 🔹 **GET ALL TASKS**
-export const getAllTasks = async (page = 1, limit = 10, status = null) => {
+export const getAllTasks = async (page = 1, limit = 10, status = null, search = null) => {
   try {
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString()
     });
-    
+
     if (status && status !== 'All') {
       params.append('status', status);
     }
-    
+    if (search) {
+      params.append('search', search);
+    }
+
     const response = await API.get(`/getalltasks?${params.toString()}`);
     return response.data;
   } catch (error) {
     throw handleApiError(error);
   }
 };
-
 
 // 🔹 **UPDATE TASK**
 export const updateTask = async (taskId, updatedData) => {
@@ -69,9 +71,7 @@ export const updateTask = async (taskId, updatedData) => {
 // 🔹 **DELETE TASK**
 export const deleteTask = async (taskId) => {
   try {
-
     const response = await API.delete(`/deletetask/${taskId}`);
-
     return response.data;
   } catch (error) {
     console.error("❌ API Error deleting task:", error);
@@ -79,9 +79,7 @@ export const deleteTask = async (taskId) => {
   }
 };
 
-
 // 🔹 **GET TASK METRICS**
-
 export const getTaskMetrics = async () => {
   try {
     const response = await API.get("/gettaskmetrics");
@@ -89,7 +87,7 @@ export const getTaskMetrics = async () => {
   } catch (error) {
     throw handleApiError(error);
   }
-}
+};
 
 // 🔹 **GET RECENT TASKS**
 export const getRecentTasks = async () => {
@@ -99,42 +97,31 @@ export const getRecentTasks = async () => {
   } catch (error) {
     throw handleApiError(error);
   }
-}
-
-export const getRecentActivities = async () => {
-  const response = await axios.get("/api/activity/recent");
-  return response.data;
 };
 
-// Get all tasks for a specific user
+// Get all tasks for a specific user (uses API instance so token is attached)
 export const getUserTasks = async (id) => {
   try {
-   
-
-    const response = await axios.get(`${TASK_API_URL}/getusertasks/${id}`)
-
-    
-
+    const response = await API.get(`/getusertasks/${id}`);
     return response.data;
   } catch (error) {
     console.error("Error fetching user tasks:", error);
-    throw error;
+    throw handleApiError(error);
   }
 };
 
-
-// Get all tasks for a specific user
+// Get tasks by query (older endpoint that uses query param)
 export const getUserTaskDisplay = async (id) => {
   try {
-    const response = await axios.get(`${TASK_API_URL}/usertaskdisplay?id=${id}`);
+    const response = await API.get(`/usertaskdisplay?id=${id}`);
     return response.data;
   } catch (error) {
     console.error("Error fetching user tasks:", error);
-    throw error;
+    throw handleApiError(error);
   }
 };
 
-// add near other API helpers
+// get single task by id
 export const getTaskById = async (id) => {
   try {
     const response = await API.get(`/gettaskbyid/${id}`);
@@ -142,4 +129,8 @@ export const getTaskById = async (id) => {
   } catch (error) {
     throw handleApiError(error);
   }
+};
+export const getRecentActivities = async () => {
+  const response = await axios.get("/api/activity/recent");
+  return response.data;
 };
